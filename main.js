@@ -6,12 +6,14 @@ function main() {
      * A (  0.5,  0.5)
      * B (  0.0,  0.0)
      * C ( -0.5,  0.5)
+     * D (  0.0,  1.0)
      */
 
     var vertices = [
         0.5, 0.5, 
         0.0, 0.0, 
-        -0.5, 0.5
+        -0.5, 0.5,
+        0.0, 1.0
     ];
 
     // Create a linked-list for storing the vertices data in the GPU realm
@@ -68,5 +70,5 @@ function main() {
                 //Red, Green, Blue, Alpha
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.drawArrays(gl.POINT, 0, 3);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
