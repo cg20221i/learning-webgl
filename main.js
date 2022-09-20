@@ -75,7 +75,15 @@ function main() {
     function onMouseClick (event) {
         isAnimated = !isAnimated;
     }
+    function onKeyDown (event) {
+        isAnimated = true;
+    }
+    function onKeyUp (event) {
+        isAnimated = false;
+    }
     document.addEventListener("click", onMouseClick);
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
 
     // All the qualifiers needed by shaders
     var uTheta = gl.getUniformLocation(shaderProgram, "uTheta");
