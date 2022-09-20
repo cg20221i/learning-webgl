@@ -77,12 +77,15 @@ function main() {
     gl.enableVertexAttribArray(aPosition);``
     
     function render() {
-        gl.clearColor(1.0, 0.75,   0.79,  1.0);
+        setTimeout(function(){
+            gl.clearColor(1.0, 0.75,   0.79,  1.0);
                     //Red, Green, Blue, Alpha
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        theta += 0.01;
-        gl.uniform1f(uTheta, theta);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            theta += 0.01;
+            gl.uniform1f(uTheta, theta);
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+            render();
+        }, 1000/10);   
     }
-    setInterval(render, 1000/60);
+    render();
 }
