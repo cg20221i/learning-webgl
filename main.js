@@ -76,10 +76,14 @@ function main() {
         isAnimated = !isAnimated;
     }
     function onKeyDown (event) {
-        isAnimated = true;
+        if (event.keyCode == 32) {  // Space button
+            isAnimated = true;
+        }
     }
     function onKeyUp (event) {
-        isAnimated = false;
+        if (event.keyCode == 32) {  // Space button
+            isAnimated = false;
+        }
     }
     document.addEventListener("click", onMouseClick);
     document.addEventListener("keydown", onKeyDown);
