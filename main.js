@@ -24,9 +24,13 @@ function main() {
     // VERTEX SHADER
     var vertexShaderCode = `
         attribute vec2 aPosition;
+        uniform float uTheta;
         void main () {
-            gl_PointSize = 15.0;
-            gl_Position = vec4(aPosition, 0.0, 1.0);
+            //gl_PointSize = 15.0;
+            vec2 position = vec2(aPosition);
+            position.x = -sin(uTheta) * aPosition.x + cos(uTheta) * aPosition.y;
+            position.y = sin(uTheta) * aPosition.y + cos(uTheta) * aPosition.x;
+            gl_Position = vec4(position, 0.0, 1.0);
             // gl_Position is the final destination for storing
             //  positional data for the rendered vertex
         }
@@ -59,16 +63,26 @@ function main() {
     gl.linkProgram(shaderProgram);
     gl.useProgram(shaderProgram);
 
+    // Local variables
+    var theta = 0.0;
+
+    // All the qualifiers needed by shaders
+    var uTheta = gl.getUniformLocation(shaderProgram, "uTheta");
+
     // Teach the GPU how to collect
     //  the positional values from ARRAY_BUFFER
     //  for each vertex being processed
     var aPosition = gl.getAttribLocation(shaderProgram, "aPosition");
     gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(aPosition);
-
-    gl.clearColor(1.0, 0.75,   0.79,  1.0);
-                //Red, Green, Blue, Alpha
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.enableVertexAttribArray(aPosition);``
+    
+    function render() {
+        gl.clearColor(1.0, 0.75,   0.79,  1.0);
+                    //Red, Green, Blue, Alpha
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        theta += 0.01;
+        gl.uniform1f(uTheta, theta);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    }
+    setInterval(render, 1000/60);
 }
