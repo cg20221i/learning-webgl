@@ -105,6 +105,7 @@ function main() {
         if (event.keyCode == 32) {  // Space button
             isAnimated = false;
         }
+        //console.log("keyup");
         direction = "";
     }
     document.addEventListener("click", onMouseClick);
@@ -148,11 +149,11 @@ function main() {
         }
         switch (direction) {
             case "up":
-                dY -= 0.1;
+                dY += 0.1;
                 gl.uniform1f(uDY, dY);
                 break;
             case "down":
-                dY += 0.1;
+                dY -= 0.1;
                 gl.uniform1f(uDY, dY);
                 break;
             case "left":
@@ -160,7 +161,7 @@ function main() {
                 gl.uniform1f(uDX, dX);
                 break;
             case "right":
-                dY += 0.1;
+                dX += 0.1;
                 gl.uniform1f(uDX, dX);
                 break;
         
