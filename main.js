@@ -2,28 +2,59 @@ function main() {
     var canvas = document.getElementById("myCanvas");
     var gl = canvas.getContext("webgl");
 
-    /**
-     * A (  0.5,  0.0)  Red     (1.0, 0.0, 0.0)
-     * B (  0.0, -0.5)  Green   (0.0, 1.0, 0.0)
-     * C ( -0.5,  0.0)  Blue    (0.0, 0.0, 1.0)
-     * D (  0.0,  0.5)  Black   (0.0, 0.0, 0.0)
-     */
-
     var vertices = [
-        0.5, 0.0, 1.0, 0.0, 0.0,
-        0.0, -0.5, 0.0, 1.0, 0.0,
-        -0.5, 0.0, 0.0, 0.0, 1.0,
-        0.0, 0.5, 0.0, 0.0, 0.0
+        // Face A       // Red
+        -1, -1, -1,     1, 0, 0,    // Index:  0    
+         1, -1, -1,     1, 0, 0,    // Index:  1
+         1,  1, -1,     1, 0, 0,    // Index:  2
+        -1,  1, -1,     1, 0, 0,    // Index:  3
+        // Face B       // Yellow
+        -1, -1,  1,     1, 1, 0,    // Index:  4
+         1, -1,  1,     1, 1, 0,    // Index:  5
+         1,  1,  1,     1, 1, 0,    // Index:  6
+        -1,  1,  1,     1, 1, 0,    // Index:  7
+        // Face C       // Green
+        -1, -1, -1,     0, 1, 0,    // Index:  8
+        -1,  1, -1,     0, 1, 0,    // Index:  9
+        -1,  1,  1,     0, 1, 0,    // Index: 10
+        -1, -1,  1,     0, 1, 0,    // Index: 11
+        // Face D       // Blue
+         1, -1, -1,     0, 0, 1,    // Index: 12
+         1,  1, -1,     0, 0, 1,    // Index: 13
+         1,  1,  1,     0, 0, 1,    // Index: 14
+         1, -1,  1,     0, 0, 1,    // Index: 15
+        // Face E       // Orange
+        -1, -1, -1,     1, 0.5, 0,  // Index: 16
+        -1, -1,  1,     1, 0.5, 0,  // Index: 17
+         1, -1,  1,     1, 0.5, 0,  // Index: 18
+         1, -1, -1,     1, 0.5, 0,  // Index: 19
+        // Face F       // White
+        -1,  1, -1,     1, 1, 1,    // Index: 20
+        -1,  1,  1,     1, 1, 1,    // Index: 21
+         1,  1,  1,     1, 1, 1,    // Index: 22
+         1,  1, -1,     1, 1, 1     // Index: 23
+    ];
+
+    var indices = [
+        0, 1, 2,     0, 2, 3,     // Face A
+        4, 5, 6,     4, 6, 7,     // Face B
+        8, 9, 10,    8, 10, 11,   // Face C
+        12, 13, 14,  12, 14, 15,  // Face D
+        16, 17, 18,  16, 18, 19,  // Face E
+        20, 21, 22,  20, 22, 23   // Face F     
     ];
 
     // Create a linked-list for storing the vertices data in the GPU realm
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    var indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
     // VERTEX SHADER
     var vertexShaderCode = `
-        attribute vec2 aPosition;
+        attribute vec3 aPosition;
         attribute vec3 aColor;
         uniform float uTheta;
         uniform float uDX;
@@ -31,10 +62,10 @@ function main() {
         varying vec3 vColor;
         void main () {
             //gl_PointSize = 15.0;
-            vec2 position = vec2(aPosition);
+            vec3 position = vec3(aPosition);
             position.x = -sin(uTheta) * aPosition.x + cos(uTheta) * aPosition.y;
             position.y = sin(uTheta) * aPosition.y + cos(uTheta) * aPosition.x;
-            gl_Position = vec4(position.x + uDX, position.y + uDY, 0.0, 1.0);
+            gl_Position = vec4(position.x + uDX, position.y + uDY, position.z, 1.0);
             // gl_Position is the final destination for storing
             //  positional data for the rendered vertex
             vColor = aColor;
@@ -123,10 +154,10 @@ function main() {
     var aPosition = gl.getAttribLocation(shaderProgram, "aPosition");
     gl.vertexAttribPointer(
         aPosition, 
-        2, 
+        3, 
         gl.FLOAT, 
         false, 
-        5 * Float32Array.BYTES_PER_ELEMENT, 
+        6 * Float32Array.BYTES_PER_ELEMENT, 
         0);
     gl.enableVertexAttribArray(aPosition);
     var aColor = gl.getAttribLocation(shaderProgram, "aColor");
@@ -135,8 +166,8 @@ function main() {
         3, 
         gl.FLOAT, 
         false, 
-        5 * Float32Array.BYTES_PER_ELEMENT, 
-        2 * Float32Array.BYTES_PER_ELEMENT);
+        6 * Float32Array.BYTES_PER_ELEMENT, 
+        3 * Float32Array.BYTES_PER_ELEMENT);
     gl.enableVertexAttribArray(aColor);
     
     function render() {
@@ -168,7 +199,8 @@ function main() {
             default:
                 break;
         }
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        gl.drawElements(gl.TRIANGLES, indices.length, 
+            gl.UNSIGNED_SHORT, 0);
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
