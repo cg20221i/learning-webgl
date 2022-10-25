@@ -56,18 +56,13 @@ function main() {
     var vertexShaderCode = `
         attribute vec3 aPosition;
         attribute vec3 aColor;
-        uniform float uTheta;
-        uniform float uDX;
-        uniform float uDY;
+        uniform mat4 uModel;
         uniform mat4 uView;
         uniform mat4 uProjection;
         varying vec3 vColor;
         void main () {
-            //gl_PointSize = 15.0;
-            vec3 position = vec3(aPosition);
-            position.z = -sin(uTheta) * aPosition.z + cos(uTheta) * aPosition.y;
-            position.y = sin(uTheta) * aPosition.y + cos(uTheta) * aPosition.z;
-            gl_Position = uProjection * uView * vec4(position.x + uDX, position.y + uDY, position.z, 1.0);
+            vec4 position = vec4(aPosition, 1.0);
+            gl_Position = uProjection * uView * uModel * position;
             // gl_Position is the final destination for storing
             //  positional data for the rendered vertex
             vColor = aColor;
@@ -108,6 +103,8 @@ function main() {
     var direction = "";
     var dX = 0.0;
     var dY = 0.0;
+    // For the model (all linear transformation)
+    var uModel = gl.getUniformLocation(shaderProgram, "uModel");
     // For the camera
     var cameraX = 0.0;
     var cameraZ = 5.0;  // 5 unit from the origin outwards the screen
@@ -200,31 +197,30 @@ function main() {
         gl.clearColor(1.0, 0.75,   0.79,  1.0);
                 //Red, Green, Blue, Alpha
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        var model = glMatrix.mat4.create();
         if (isAnimated) {
             theta += 0.01;
-            gl.uniform1f(uTheta, theta);
         }
         switch (direction) {
             case "up":
                 dY += 0.1;
-                gl.uniform1f(uDY, dY);
                 break;
             case "down":
                 dY -= 0.1;
-                gl.uniform1f(uDY, dY);
                 break;
             case "left":
                 dX -= 0.1;
-                gl.uniform1f(uDX, dX);
                 break;
             case "right":
                 dX += 0.1;
-                gl.uniform1f(uDX, dX);
                 break;
         
             default:
                 break;
         }
+        glMatrix.mat4.translate(model, model, [dX, dY, 0.0]);
+        glMatrix.mat4.rotateZ(model, model, theta);
+        gl.uniformMatrix4fv(uModel, false, model);
         gl.drawElements(gl.TRIANGLES, indices.length, 
             gl.UNSIGNED_SHORT, 0);
         requestAnimationFrame(render);
