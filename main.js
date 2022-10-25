@@ -59,13 +59,15 @@ function main() {
         uniform float uTheta;
         uniform float uDX;
         uniform float uDY;
+        uniform mat4 uView;
+        uniform mat4 uProjection;
         varying vec3 vColor;
         void main () {
             //gl_PointSize = 15.0;
             vec3 position = vec3(aPosition);
-            position.x = -sin(uTheta) * aPosition.x + cos(uTheta) * aPosition.y;
-            position.y = sin(uTheta) * aPosition.y + cos(uTheta) * aPosition.x;
-            gl_Position = vec4(position.x + uDX, position.y + uDY, position.z, 1.0);
+            position.z = -sin(uTheta) * aPosition.z + cos(uTheta) * aPosition.y;
+            position.y = sin(uTheta) * aPosition.y + cos(uTheta) * aPosition.z;
+            gl_Position = uProjection * uView * vec4(position.x + uDX, position.y + uDY, position.z, 1.0);
             // gl_Position is the final destination for storing
             //  positional data for the rendered vertex
             vColor = aColor;
@@ -106,6 +108,29 @@ function main() {
     var direction = "";
     var dX = 0.0;
     var dY = 0.0;
+    // For the camera
+    var cameraX = 0.0;
+    var cameraZ = 5.0;  // 5 unit from the origin outwards the screen
+    var uView = gl.getUniformLocation(shaderProgram, "uView");
+    var view = glMatrix.mat4.create();  // Create an identity matrix
+    glMatrix.mat4.lookAt(
+        view,
+        [cameraX, 0.0, cameraZ],
+        [cameraX, 0.0, -10.0],
+        [0.0, 1.0, 0.0]
+    );
+    // For the projection
+    var uProjection = gl.getUniformLocation(shaderProgram, "uProjection");
+    var perspective = glMatrix.mat4.create();
+    glMatrix.mat4.perspective(
+        perspective,
+        Math.PI/3,  // 60 degrees
+        1.0,
+        0.5, 
+        10.0
+    );
+    gl.uniformMatrix4fv(uView, false, view);
+    gl.uniformMatrix4fv(uProjection, false, perspective);
 
     // Local functions
     function onMouseClick (event) {
@@ -171,9 +196,10 @@ function main() {
     gl.enableVertexAttribArray(aColor);
     
     function render() {
+        gl.enable(gl.DEPTH_TEST);
         gl.clearColor(1.0, 0.75,   0.79,  1.0);
                 //Red, Green, Blue, Alpha
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         if (isAnimated) {
             theta += 0.01;
             gl.uniform1f(uTheta, theta);
