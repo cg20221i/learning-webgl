@@ -76,9 +76,12 @@ function main() {
     var fragmentShaderCode = `
         precision mediump float;
         varying vec3 vColor;
+        uniform vec3 uAmbientConstant;      // It represents the light color
+        uniform float uAmbientIntensity;    // It represents the light intensity
         void main() {
-            gl_FragColor = vec4(vColor, 1.0);
-            // Blue = R:0, G:0, B:1, A:1
+            vec3 ambient = uAmbientConstant * uAmbientIntensity;
+            vec3 phong = ambient; // + diffuse + specular
+            gl_FragColor = vec4(phong * vColor, 1.0);
             // gl_FragColor is the final destination for storing
             //  color data for the rendered fragment
         }
@@ -129,6 +132,12 @@ function main() {
     gl.uniformMatrix4fv(uView, false, view);
     gl.uniformMatrix4fv(uProjection, false, perspective);
 
+    // For the lighting and shading
+    var uAmbientConstant = gl.getUniformLocation(shaderProgram, "uAmbientConstant");
+    var uAmbientIntensity = gl.getUniformLocation(shaderProgram, "uAmbientIntensity");
+    gl.uniform3fv(uAmbientConstant, [1.0, 0.5, 1.0]);   // orange color
+    gl.uniform1f(uAmbientIntensity, 0.4);               // 40% intensity
+
     // Local functions
     function onMouseClick (event) {
         isAnimated = !isAnimated;
@@ -165,11 +174,6 @@ function main() {
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
 
-    // All the qualifiers needed by shaders
-    var uTheta = gl.getUniformLocation(shaderProgram, "uTheta");
-    var uDX = gl.getUniformLocation(shaderProgram, "uDX");
-    var uDY = gl.getUniformLocation(shaderProgram, "uDY");
-
     // Teach the GPU how to collect
     //  the positional values from ARRAY_BUFFER
     //  for each vertex being processed
@@ -194,8 +198,7 @@ function main() {
     
     function render() {
         gl.enable(gl.DEPTH_TEST);
-        gl.clearColor(1.0, 0.75,   0.79,  1.0);
-                //Red, Green, Blue, Alpha
+        gl.clearColor(0.0, 0.0,   0.0,  1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         var model = glMatrix.mat4.create();
         if (isAnimated) {
@@ -220,6 +223,7 @@ function main() {
         }
         glMatrix.mat4.translate(model, model, [dX, dY, 0.0]);
         glMatrix.mat4.rotateZ(model, model, theta);
+        glMatrix.mat4.rotateY(model, model, theta);
         gl.uniformMatrix4fv(uModel, false, model);
         gl.drawElements(gl.TRIANGLES, indices.length, 
             gl.UNSIGNED_SHORT, 0);
