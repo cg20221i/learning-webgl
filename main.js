@@ -199,8 +199,14 @@ function main() {
             var y = event.clientY;
             var xdiff = x - prevx;
             var ydiff = y - prevy;
-            glMatrix.mat4.rotateY(rotation, rotation, glMatrix.glMatrix.toRadian(xdiff/10));
-            glMatrix.mat4.rotateX(rotation, rotation, glMatrix.glMatrix.toRadian(ydiff/10));
+            var inverseRotation = glMatrix.mat4.create();
+            glMatrix.mat4.invert(inverseRotation, rotation);
+            var xAxis = [1, 0, 0, 0];
+            var yAxis = [0, 1, 0, 0];
+            glMatrix.vec4.transformMat4(xAxis, xAxis, inverseRotation);
+            glMatrix.vec4.transformMat4(yAxis, yAxis, inverseRotation);
+            glMatrix.mat4.rotate(rotation, rotation, glMatrix.glMatrix.toRadian(xdiff/10), yAxis);
+            glMatrix.mat4.rotate(rotation, rotation, glMatrix.glMatrix.toRadian(ydiff/10), xAxis);
         }
     }
     document.addEventListener("mousedown", onMouseDown);
@@ -339,8 +345,8 @@ function main() {
                 break;
         }
         glMatrix.mat4.translate(model, model, [dX, dY, 0.0]);
-        glMatrix.mat4.rotateZ(model, model, theta);
-        glMatrix.mat4.rotateY(model, model, theta);
+        glMatrix.mat4.rotateZ(rotation, rotation, theta);
+        glMatrix.mat4.rotateY(rotation, rotation, theta);
         glMatrix.mat4.multiply(model, model, rotation);
         gl.uniformMatrix4fv(uModel, false, model);
 
