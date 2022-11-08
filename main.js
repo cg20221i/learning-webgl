@@ -60,6 +60,7 @@ function main() {
         uniform mat4 uModel;
         uniform mat4 uView;
         uniform mat4 uProjection;
+        varying vec3 vPosition;
         varying vec3 vColor;
         varying vec3 vNormal;
         void main () {
@@ -69,6 +70,7 @@ function main() {
             //  positional data for the rendered vertex
             vColor = aColor;
             vNormal = aNormal;
+            vPosition = (uModel * position).xyz;
         }
     `;
     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -81,12 +83,14 @@ function main() {
         varying vec3 vColor;
         uniform vec3 uLightConstant;      // It represents the light color
         uniform float uAmbientIntensity;  // It represents the light intensity
+        varying vec3 vPosition;
         varying vec3 vNormal;
-        uniform vec3 uLightDirection;
+        uniform vec3 uLightPosition;
         uniform mat3 uNormalModel;
         void main() {
             vec3 ambient = uLightConstant * uAmbientIntensity;
-            vec3 normalizedLight = normalize(uLightDirection);
+            vec3 lightDirection = uLightPosition - vPosition;
+            vec3 normalizedLight = normalize(lightDirection);
             vec3 normalizedNormal = normalize(uNormalModel * vNormal);
             float cosTheta = dot(normalizedNormal, normalizedLight);
             vec3 diffuse = vec3(0.0, 0.0, 0.0);
@@ -153,8 +157,8 @@ function main() {
     gl.uniform3fv(uLightConstant, [1.0, 1.0, 1.0]);   // white color
     gl.uniform1f(uAmbientIntensity, 0.4);             // 40% intensity
         // Diffuse
-    var uLightDirection = gl.getUniformLocation(shaderProgram, "uLightDirection");
-    gl.uniform3fv(uLightDirection, [2.0, 0.0, 0.0]);
+    var uLightPosition = gl.getUniformLocation(shaderProgram, "uLightPosition");
+    gl.uniform3fv(uLightPosition, [1.0, 0.0, 1.0]);
     var uNormalModel = gl.getUniformLocation(shaderProgram, "uNormalModel");
 
     // Local functions
