@@ -86,6 +86,7 @@ function main() {
         varying vec3 vPosition;
         varying vec3 vNormal;
         uniform vec3 uLightPosition;
+        uniform vec3 uViewerPosition;
         uniform mat3 uNormalModel;
         void main() {
             vec3 ambient = uLightConstant * uAmbientIntensity;
@@ -98,7 +99,16 @@ function main() {
                 float diffuseIntensity = cosTheta;
                 diffuse = uLightConstant * diffuseIntensity;
             }
-            vec3 phong = ambient + diffuse; // + specular
+            vec3 normalizedReflector = normalize(reflect(-lightDirection, normalizedNormal));
+            vec3 normalizedViewer = normalize(uViewerPosition - vPosition);
+            float cosPhi = dot(normalizedReflector, normalizedViewer);
+            vec3 specular = vec3(0., 0., 0.);
+            if (cosPhi > 0.) {
+                float shininessConstant = 100.0;    // bare minimum spec for metal
+                float specularIntensity = pow(cosPhi, shininessConstant);
+                specular = uLightConstant * specularIntensity;
+            }
+            vec3 phong = ambient + diffuse + specular;
             gl_FragColor = vec4(phong * vColor, 1.0);
             // gl_FragColor is the final destination for storing
             //  color data for the rendered fragment
@@ -127,16 +137,16 @@ function main() {
     // For the model (all linear transformation)
     var uModel = gl.getUniformLocation(shaderProgram, "uModel");
     // For the camera
-    var cameraX = 0.0;
-    var cameraZ = 5.0;  // 5 unit from the origin outwards the screen
+    var camera = [0.0, 0.0, 5.0];
     var uView = gl.getUniformLocation(shaderProgram, "uView");
     var view = glMatrix.mat4.create();  // Create an identity matrix
     glMatrix.mat4.lookAt(
         view,
-        [cameraX, 0.0, cameraZ],
-        [cameraX, 0.0, -10.0],
+        camera,
+        [camera[0], 0.0, -10.0],
         [0.0, 1.0, 0.0]
     );
+    gl.uniformMatrix4fv(uView, false, view);
     // For the projection
     var uProjection = gl.getUniformLocation(shaderProgram, "uProjection");
     var perspective = glMatrix.mat4.create();
@@ -147,7 +157,6 @@ function main() {
         0.5, 
         10.0
     );
-    gl.uniformMatrix4fv(uView, false, view);
     gl.uniformMatrix4fv(uProjection, false, perspective);
 
     // For the lighting and shading
@@ -160,6 +169,8 @@ function main() {
     var uLightPosition = gl.getUniformLocation(shaderProgram, "uLightPosition");
     gl.uniform3fv(uLightPosition, [1.0, 0.0, 1.0]);
     var uNormalModel = gl.getUniformLocation(shaderProgram, "uNormalModel");
+        // Specular
+    var uViewerPosition = gl.getUniformLocation(shaderProgram, "uViewerPosition");
 
     // Local functions
     function onMouseClick (event) {
@@ -170,17 +181,61 @@ function main() {
             isAnimated = true;
         }
         switch (event.keyCode) {
-            case 38: // UP
+            case 87: // Object UP
                 direction = "up";
                 break;
-            case 40: // DOWN
+            case 83: // Object DOWN
                 direction = "down";
                 break;
-            case 39: // RIGHT
+            case 68: // Object RIGHT
                 direction = "right";
                 break;
-            case 37: // LEFT
+            case 65: // Object LEFT
                 direction = "left";
+                break;
+            case 38: // Camera UP
+                camera[1] += 0.05;
+                gl.uniform3fv(uViewerPosition, camera);
+                glMatrix.mat4.lookAt(
+                    view,
+                    camera,
+                    [camera[0], 0.0, -10.0],
+                    [0.0, 1.0, 0.0]
+                );
+                gl.uniformMatrix4fv(uView, false, view);
+                break;
+            case 40: // Camera DOWN
+                camera[1] -= 0.05;
+                gl.uniform3fv(uViewerPosition, camera);
+                glMatrix.mat4.lookAt(
+                    view,
+                    camera,
+                    [camera[0], 0.0, -10.0],
+                    [0.0, 1.0, 0.0]
+                );
+                gl.uniformMatrix4fv(uView, false, view);
+                break;
+            case 39: // Camera RIGHT
+                camera[0] += 0.05;
+                gl.uniform3fv(uViewerPosition, camera);
+                glMatrix.mat4.lookAt(
+                    view,
+                    camera,
+                    [camera[0], 0.0, -10.0],
+                    [0.0, 1.0, 0.0]
+                );
+                gl.uniformMatrix4fv(uView, false, view);
+                break;
+            case 37: // Camera LEFT
+                camera[0] -= 0.05;
+                gl.uniform3fv(uViewerPosition, camera);
+                glMatrix.mat4.lookAt(
+                    view,
+                    camera,
+                    [camera[0], 0.0, -10.0],
+                    [0.0, 1.0, 0.0]
+                );
+                gl.uniformMatrix4fv(uView, false, view);
                 break;
             default:
                 break;
