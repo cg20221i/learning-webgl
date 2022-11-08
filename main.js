@@ -205,8 +205,10 @@ function main() {
             var yAxis = [0, 1, 0, 0];
             glMatrix.vec4.transformMat4(xAxis, xAxis, inverseRotation);
             glMatrix.vec4.transformMat4(yAxis, yAxis, inverseRotation);
-            glMatrix.mat4.rotate(rotation, rotation, glMatrix.glMatrix.toRadian(xdiff/10), yAxis);
-            glMatrix.mat4.rotate(rotation, rotation, glMatrix.glMatrix.toRadian(ydiff/10), xAxis);
+            glMatrix.mat4.rotate(rotation, rotation, glMatrix.glMatrix.toRadian(xdiff), yAxis);
+            glMatrix.mat4.rotate(rotation, rotation, glMatrix.glMatrix.toRadian(ydiff), xAxis);
+            prevx = x;
+            prevy = y;
         }
     }
     document.addEventListener("mousedown", onMouseDown);
