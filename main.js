@@ -173,13 +173,41 @@ function main() {
     var uViewerPosition = gl.getUniformLocation(shaderProgram, "uViewerPosition");
 
     // Local functions
-    function onMouseClick (event) {
-        isAnimated = !isAnimated;
-    }
-    function onKeyDown (event) {
-        if (event.keyCode == 32) {  // Space button
-            isAnimated = true;
+        // MOUSE
+    var dragging, prevx, prevy, rotation = glMatrix.mat4.create();
+    function onMouseDown (event) {
+        var x = event.clientX;
+        var y = event.clientY;
+        var rect = event.target.getBoundingClientRect();
+        if (
+            rect.left <= x &&
+            rect.right >= x &&
+            rect.top <= y &&
+            rect.bottom >= y
+        ) {
+            dragging = true;
+            prevx = x;
+            prevy = y;
         }
+    }
+    function onMouseUp (event) {
+        dragging = false;
+    }
+    function onMouseMove (event) {
+        if (dragging) {
+            var x = event.clientX;
+            var y = event.clientY;
+            var xdiff = x - prevx;
+            var ydiff = y - prevy;
+            glMatrix.mat4.rotateY(rotation, rotation, glMatrix.glMatrix.toRadian(xdiff/10));
+            glMatrix.mat4.rotateX(rotation, rotation, glMatrix.glMatrix.toRadian(ydiff/10));
+        }
+    }
+    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("mouseup", onMouseUp);
+    document.addEventListener("mousemove", onMouseMove);
+        // KEYBOARD
+    function onKeyDown (event) {
         switch (event.keyCode) {
             case 87: // Object UP
                 direction = "up";
@@ -242,13 +270,15 @@ function main() {
         }
     }
     function onKeyUp (event) {
-        if (event.keyCode == 32) {  // Space button
-            isAnimated = false;
-        }
-        //console.log("keyup");
         direction = "";
     }
-    document.addEventListener("click", onMouseClick);
+    function onKeyPress (event) {
+        console.log('keypress');
+        if (event.keyCode == 32) {  // Space button
+            isAnimated = !isAnimated;
+        }
+    }
+    document.addEventListener("keypress", onKeyPress)
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
 
@@ -311,6 +341,7 @@ function main() {
         glMatrix.mat4.translate(model, model, [dX, dY, 0.0]);
         glMatrix.mat4.rotateZ(model, model, theta);
         glMatrix.mat4.rotateY(model, model, theta);
+        glMatrix.mat4.multiply(model, model, rotation);
         gl.uniformMatrix4fv(uModel, false, model);
 
         // For transforming the normal vector
