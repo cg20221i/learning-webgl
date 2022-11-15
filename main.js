@@ -6,7 +6,7 @@ function main() {
     function initTexture(callback) {
         texture = gl.createTexture();
         var image = new Image();
-        image.onload = function () { loadTexture(image, callback); }
+        image.onload = function() { loadTexture(image, callback); };
         image.src = "txCrate.bmp";
     }
     function loadTexture(image, callback) {
@@ -29,27 +29,27 @@ function main() {
          1, -1, -1,     1, 0,       0, 0, -1,   // Index:  1
          1,  1, -1,     1, 1,       0, 0, -1,   // Index:  2
         -1,  1, -1,     0, 1,       0, 0, -1,   // Index:  3
-        // Face B       // Yellow
+        // Face B       
         -1, -1,  1,     0, 0,       0, 0, 1,    // Index:  4
          1, -1,  1,     1, 0,       0, 0, 1,    // Index:  5
          1,  1,  1,     1, 1,       0, 0, 1,    // Index:  6
         -1,  1,  1,     0, 1,       0, 0, 1,    // Index:  7
-        // Face C       // Green
+        // Face C       
         -1, -1, -1,     0, 0,       -1, 0, 0,   // Index:  8
         -1,  1, -1,     1, 0,       -1, 0, 0,   // Index:  9
         -1,  1,  1,     1, 1,       -1, 0, 0,   // Index: 10
         -1, -1,  1,     0, 1,       -1, 0, 0,   // Index: 11
-        // Face D       // Blue
+        // Face D       
          1, -1, -1,     0, 0,       1, 0, 0,    // Index: 12
          1,  1, -1,     1, 0,       1, 0, 0,    // Index: 13
          1,  1,  1,     1, 1,       1, 0, 0,    // Index: 14
          1, -1,  1,     0, 1,       1, 0, 0,    // Index: 15
-        // Face E       // Orange
+        // Face E       
         -1, -1, -1,     0, 0,       0, -1, 0,   // Index: 16
         -1, -1,  1,     1, 0,       0, -1, 0,   // Index: 17
          1, -1,  1,     1, 1,       0, -1, 0,   // Index: 18
          1, -1, -1,     0, 1,       0, -1, 0,   // Index: 19
-        // Face F       // White
+        // Face F       
         -1,  1, -1,     0, 0,       0, 1, 0,    // Index: 20
         -1,  1,  1,     1, 0,       0, 1, 0,    // Index: 21
          1,  1,  1,     1, 1,       0, 1, 0,    // Index: 22
@@ -304,7 +304,6 @@ function main() {
         direction = "";
     }
     function onKeyPress (event) {
-        console.log('keypress');
         if (event.keyCode == 32) {  // Space button
             isAnimated = !isAnimated;
         }
@@ -379,6 +378,12 @@ function main() {
         var normalModel = glMatrix.mat3.create();
         glMatrix.mat3.normalFromMat4(normalModel, model);
         gl.uniformMatrix3fv(uNormalModel, false, normalModel);
+
+        // Texture
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        var uSampler = gl.getUniformLocation(shaderProgram, "uSampler");
+        gl.uniform1i(uSampler, 0);
 
         gl.drawElements(gl.TRIANGLES, indices.length, 
             gl.UNSIGNED_SHORT, 0);
